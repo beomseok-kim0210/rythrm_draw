@@ -1,31 +1,25 @@
-import type { Note, Judgement, JudgementResult, ScoreState, GestureType } from '../types';
+﻿import type { Note, Judgement, JudgementResult, ScoreState, GestureType } from '../types';
 
-const PERFECT_MS = 90;
-const GOOD_MS    = 170;
-const BAD_MS     = 300;
+const PERFECT_MS = 75;
+const GOOD_MS = 140;
+const BAD_MS = 240;
 
 const BASE_SCORES: Record<Judgement, number> = {
   PERFECT: 300,
-  GOOD:    150,
-  BAD:     50,
-  MISS:    0,
-  WRONG:   0,
+  GOOD: 150,
+  BAD: 50,
+  MISS: 0,
+  WRONG: 0,
 };
 
 export function classifyTiming(timingDeltaMs: number): 'PERFECT' | 'GOOD' | 'BAD' | null {
   const abs = Math.abs(timingDeltaMs);
   if (abs <= PERFECT_MS) return 'PERFECT';
-  if (abs <= GOOD_MS)    return 'GOOD';
-  if (abs <= BAD_MS)     return 'BAD';
-  return null; // 범위 밖
+  if (abs <= GOOD_MS) return 'GOOD';
+  if (abs <= BAD_MS) return 'BAD';
+  return null;
 }
 
-/**
- * 제스처 포함 TAP 판정
- *
- * 조건: 타이밍 OK + 위치 OK + 제스처 OK → PERFECT/GOOD/BAD
- *       타이밍 OK + 위치 OK + 제스처 WRONG → WRONG (콤보 깨짐)
- */
 export function judgeNote(
   note: Note,
   fingertip: { x: number; y: number },
@@ -35,8 +29,8 @@ export function judgeNote(
   canvasH: number,
   combo: number
 ): JudgementResult {
-  const timingDelta  = currentMs - note.t_ms;
-  const timingClass  = classifyTiming(timingDelta);
+  const timingDelta = currentMs - note.t_ms;
+  const timingClass = classifyTiming(timingDelta);
   const gestureMatch = currentGesture === note.required_gesture;
 
   const dx = fingertip.x / canvasW - note.x;
@@ -96,16 +90,18 @@ export function applyJudgement(state: ScoreState, result: JudgementResult): Scor
   const counts = { ...state.counts };
   counts[result.judgement]++;
 
-  // MISS / WRONG → 콤보 초기화
   const breakCombo = result.judgement === 'MISS' || result.judgement === 'WRONG';
   const newCombo = breakCombo ? 0 : state.combo + 1;
   const maxCombo = Math.max(state.maxCombo, newCombo);
-  const total    = state.total + result.score;
+  const total = state.total + result.score;
 
-  // accuracy = (PERFECT*100 + GOOD*50) / (판정된 노트 수 * 100)
   const judgedNotes = counts.PERFECT + counts.GOOD + counts.BAD + counts.MISS + counts.WRONG;
-  const weighted    = counts.PERFECT * 100 + counts.GOOD * 50;
-  const accuracy    = judgedNotes > 0 ? (weighted / (judgedNotes * 100)) * 100 : 100;
+  const weighted = counts.PERFECT * 100 + counts.GOOD * 50;
+  const accuracy = judgedNotes > 0 ? (weighted / (judgedNotes * 100)) * 100 : 100;
 
   return { total, combo: newCombo, maxCombo, counts, accuracy };
+}
+
+export function isAccurateJudgement(judgement: Judgement): boolean {
+  return judgement === 'PERFECT' || judgement === 'GOOD';
 }

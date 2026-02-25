@@ -14,14 +14,14 @@ const SONGS: Song[] = [
     title: 'Gesture Groove',
     artist: 'Built-in Rhythm Track',
     beatmapUrl: '/songs/demo-groove.beatmap.json',
-    description: 'Recommended: easy pattern for first play.',
+    description: 'Recommended: includes TAP + SWIPE + domain gesture triggers.',
   },
   {
     id: 'classic-demo',
     title: 'Classic Demo',
     artist: 'WebAudio Synth',
     beatmapUrl: '/songs/demo.beatmap.json',
-    description: 'Simple generated beep track.',
+    description: 'Short stage with mixed tap/swipe notes.',
   },
 ];
 
@@ -47,7 +47,7 @@ export default function SongSelectScreen({ onSelect }: Props): React.ReactElemen
     >
       <h1 style={{ fontSize: 44, marginBottom: 10, letterSpacing: 2 }}>RHYTHM GESTURE</h1>
       <p style={{ color: '#a8d6e8', marginBottom: 42, fontSize: 16 }}>
-        ROCK / SCISSORS / PAPER must match each note on beat.
+        Match ROCK / SCISSORS / PAPER on beat. Swipe notes require directional drag.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: 520, maxWidth: '95vw' }}>

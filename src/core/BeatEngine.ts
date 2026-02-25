@@ -46,7 +46,8 @@ export class BeatEngine {
     const t = this.getCurrentMs();
 
     for (const n of this.notes) {
-      if (!n.hit && !n.missed && t - n.t_ms > MISS_WINDOW_MS) {
+      const missWindow = this.getMissWindowMs(n);
+      if (!n.hit && !n.missed && t - n.t_ms > missWindow) {
         n.missed = true;
       }
     }
@@ -56,7 +57,7 @@ export class BeatEngine {
         !n.hit &&
         !n.missed &&
         n.t_ms - t <= APPROACH_MS &&
-        n.t_ms - t >= -MISS_WINDOW_MS
+        n.t_ms - t >= -this.getMissWindowMs(n)
     );
   }
 
@@ -73,11 +74,25 @@ export class BeatEngine {
     if (n) n.hit = true;
   }
 
+  markMiss(noteId: string): ScheduledNote | null {
+    const n = this.notes.find((note) => note.id === noteId);
+    if (!n || n.hit || n.missed) return null;
+    n.missed = true;
+    n._missReported = true;
+    return n;
+  }
+
   isComplete(): boolean {
     return this.notes.length > 0 && this.notes.every((n) => n.hit || n.missed);
   }
 
   getBeatmap(): Beatmap | null {
     return this.beatmap;
+  }
+
+  private getMissWindowMs(note: ScheduledNote): number {
+    if (note.type !== 'SWIPE') return MISS_WINDOW_MS;
+    const swipeExtra = Math.max(260, note.len_ms ?? 520);
+    return MISS_WINDOW_MS + swipeExtra;
   }
 }
